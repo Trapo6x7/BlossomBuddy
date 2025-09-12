@@ -10,6 +10,15 @@ use Illuminate\Support\Facades\Validator;
 class UserPlantController extends Controller
 {
 	// Lister les plantes de l'utilisateur
+		/**
+		 * @OA\Get(
+		 *     path="/api/user/plants",
+		 *     summary="Liste les plantes de l'utilisateur connecté",
+		 *     tags={"UserPlant"},
+		 *     security={{"sanctum":{}}},
+		 *     @OA\Response(response=200, description="Liste des plantes de l'utilisateur")
+		 * )
+		 */
 	public function index(Request $request)
 	{
 		$user = $request->user();
@@ -23,6 +32,23 @@ class UserPlantController extends Controller
 	 * @param Request $request
 	 * @return \Illuminate\Http\JsonResponse
 	 */
+		/**
+		 * @OA\Post(
+		 *     path="/api/user/plant",
+		 *     summary="Ajoute une plante à l'utilisateur",
+		 *     tags={"UserPlant"},
+		 *     security={{"sanctum":{}}},
+		 *     @OA\RequestBody(
+		 *         required=true,
+		 *         @OA\JsonContent(
+		 *             required={"plant_name","city"},
+		 *             @OA\Property(property="plant_name", type="string", example="Test"),
+		 *             @OA\Property(property="city", type="string", example="Lyon")
+		 *         )
+		 *     ),
+		 *     @OA\Response(response=200, description="Plante ajoutée à l'utilisateur")
+		 * )
+		 */
 	public function store(Request $request)
 	{
 		$user = $request->user();
@@ -49,6 +75,21 @@ class UserPlantController extends Controller
 	}
 
 	// Afficher une plante précise de l'utilisateur
+		/**
+		 * @OA\Get(
+		 *     path="/api/user/plant/{id}",
+		 *     summary="Affiche une plante précise de l'utilisateur",
+		 *     tags={"UserPlant"},
+		 *     security={{"sanctum":{}}},
+		 *     @OA\Parameter(
+		 *         name="id",
+		 *         in="path",
+		 *         required=true,
+		 *         @OA\Schema(type="integer")
+		 *     ),
+		 *     @OA\Response(response=200, description="Détails de la plante de l'utilisateur")
+		 * )
+		 */
 	public function show(Request $request, $id)
 	{
 		$user = $request->user();
@@ -60,6 +101,21 @@ class UserPlantController extends Controller
 	}
 
 	// Supprimer une plante de l'utilisateur
+		/**
+		 * @OA\Delete(
+		 *     path="/api/user/plant/{id}",
+		 *     summary="Supprime une plante de l'utilisateur",
+		 *     tags={"UserPlant"},
+		 *     security={{"sanctum":{}}},
+		 *     @OA\Parameter(
+		 *         name="id",
+		 *         in="path",
+		 *         required=true,
+		 *         @OA\Schema(type="integer")
+		 *     ),
+		 *     @OA\Response(response=200, description="Plante supprimée de l'utilisateur")
+		 * )
+		 */
 	public function destroy(Request $request, $id = null)
 	{
 		$user = $request->user();
