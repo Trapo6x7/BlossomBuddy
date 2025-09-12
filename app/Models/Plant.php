@@ -26,6 +26,6 @@ class Plant extends Model
      */
     public function users(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'plant_user_table', 'plant_id', 'user_id');
+        return $this->belongsToMany(User::class, 'plant_user', 'plant_id', 'user_id');
     }
 }

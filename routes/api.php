@@ -24,6 +24,6 @@ Route::get('/plant/{name}', [PlantController::class, 'show']);
 Route::delete('/plant/{id}', [PlantController::class, 'destroy']);
 
 // Route pour la gestion des plantes d'un utilisateur
-Route::post('/user/plant', [UserPlantController::class, 'destroy'])->middleware('auth:sanctum');
-Route::post('/user/plants', [UserPlantController::class, 'destroy'])->middleware('auth:sanctum');
-Route::post('/user/plant/{id}', [UserPlantController::class, 'destroy'])->middleware('auth:sanctum');
+Route::post('/user/plant', [UserPlantController::class, 'store'])->middleware('auth:sanctum');
+Route::get('/user/plants', [UserPlantController::class, 'index'])->middleware('auth:sanctum');
+Route::delete('/user/plant/{id}', [UserPlantController::class, 'destroy'])->middleware('auth:sanctum');

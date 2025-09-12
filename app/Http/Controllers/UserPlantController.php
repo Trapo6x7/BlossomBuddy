@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Plant;
+use Illuminate\Support\Facades\Validator;
 
 class UserPlantController extends Controller
 {
@@ -17,15 +18,33 @@ class UserPlantController extends Controller
 	}
 
 	// Ajouter une plante à l'utilisateur
+	/**
+	 * Ajoute une plante à l'utilisateur en fonction du nom et de la ville
+	 * @param Request $request
+	 * @return \Illuminate\Http\JsonResponse
+	 */
 	public function store(Request $request)
 	{
 		$user = $request->user();
-		$plantId = $request->input('plant_id');
-		$plant = Plant::find($plantId);
+
+		// Validation des champs
+		$validator = Validator::make($request->all(), [
+			'plant_name' => 'required|string',
+			'city' => 'required|string',
+		]);
+		if ($validator->fails()) {
+			return response()->json(['errors' => $validator->errors()], 422);
+		}
+
+		// Recherche de la plante par son nom
+		$plant = Plant::where('common_name', $request->plant_name)->first();
 		if (!$plant) {
 			return response()->json(['error' => 'Plante non trouvée'], 404);
 		}
-		$user->plants()->attach($plantId);
+
+		// Ajout dans la table pivot avec la ville
+		$user->plants()->attach($plant->id, ['city' => $request->city]);
+
 		return response()->json(['message' => 'Plante ajoutée à l’utilisateur']);
 	}
 
