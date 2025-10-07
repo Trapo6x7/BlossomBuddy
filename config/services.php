@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+        'plant_api' => [
+        'key' => env('PLANT_API_KEY', 'sk-U6s068e379d266aeb12714'),
+        'details_url' => env('URL_DE_PLANTAPI', 'https://perenual.com/api/v2/species/details/{id}'),
+    ],
+
 ];

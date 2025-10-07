@@ -23,6 +23,7 @@ Route::get('/plant', [PlantController::class, 'index']);
 Route::post('/plant', [PlantController::class, 'store']);
 Route::get('/plant/{name}', [PlantController::class, 'show']);
 Route::delete('/plant/{id}', [PlantController::class, 'destroy']);
+Route::post('/plant/update', [PlantController::class, 'update']);
 
 // Route pour la gestion des plantes d'un utilisateur
 Route::post('/user/plant', [UserPlantController::class, 'store'])->middleware('auth:sanctum');

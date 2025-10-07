@@ -14,7 +14,7 @@ class AuthController extends Controller
     // Inscription d'un utilisateur
     /**
      * @OA\Post(
-     *     path="/api/register",
+     *     path="/register",
      *     summary="Inscription d'un utilisateur",
      *     tags={"Auth"},
      *     @OA\RequestBody(
@@ -64,7 +64,7 @@ class AuthController extends Controller
     // Authentification d'un utilisateur
     /**
      * @OA\Post(
-     *     path="/api/login",
+     *     path="/login",
      *     summary="Authentification utilisateur",
      *     tags={"Auth"},
      *     @OA\RequestBody(
@@ -108,7 +108,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/api/logout",
+     *     path="/logout",
      *     summary="Déconnexion de l'utilisateur",
      *     tags={"Auth"},
      *     security={{"sanctum":{}}},
@@ -125,7 +125,7 @@ class AuthController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/api/me",
+     *     path="/me",
      *     summary="Retourne l'utilisateur authentifié",
      *     tags={"Auth"},
      *     security={{"sanctum":{}}},
@@ -142,7 +142,7 @@ class AuthController extends Controller
      */
     /**
      * @OA\Get(
-     *     path="/api/user/{id}",
+     *     path="/user/{id}",
      *     summary="Afficher un utilisateur par son id",
      *     tags={"Auth"},
      *     @OA\Parameter(
@@ -164,7 +164,7 @@ class AuthController extends Controller
      */
     /**
      * @OA\Put(
-     *     path="/api/user/{id}",
+     *     path="/user/{id}",
      *     summary="Mettre à jour un utilisateur",
      *     tags={"Auth"},
      *     @OA\Parameter(
@@ -212,7 +212,7 @@ class AuthController extends Controller
      */
     /**
      * @OA\Delete(
-     *     path="/api/user/{id}",
+     *     path="/user/{id}",
      *     summary="Supprimer un utilisateur",
      *     tags={"Auth"},
      *     @OA\Parameter(

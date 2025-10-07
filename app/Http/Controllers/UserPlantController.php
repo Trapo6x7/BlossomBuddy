@@ -12,7 +12,7 @@ class UserPlantController extends Controller
 	// Lister les plantes de l'utilisateur
 		/**
 		 * @OA\Get(
-		 *     path="/api/user/plants",
+		 *     path="/user/plants",
 		 *     summary="Liste les plantes de l'utilisateur connecté",
 		 *     tags={"UserPlant"},
 		 *     security={{"sanctum":{}}},
@@ -34,7 +34,7 @@ class UserPlantController extends Controller
 	 */
 		/**
 		 * @OA\Post(
-		 *     path="/api/user/plant",
+		 *     path="/user/plant",
 		 *     summary="Ajoute une plante à l'utilisateur",
 		 *     tags={"UserPlant"},
 		 *     security={{"sanctum":{}}},
@@ -77,7 +77,7 @@ class UserPlantController extends Controller
 	// Afficher une plante précise de l'utilisateur
 		/**
 		 * @OA\Get(
-		 *     path="/api/user/plant/{id}",
+		 *     path="/user/plant/{id}",
 		 *     summary="Affiche une plante précise de l'utilisateur",
 		 *     tags={"UserPlant"},
 		 *     security={{"sanctum":{}}},
@@ -103,7 +103,7 @@ class UserPlantController extends Controller
 	// Supprimer une plante de l'utilisateur
 		/**
 		 * @OA\Delete(
-		 *     path="/api/user/plant/{id}",
+		 *     path="/user/plant/{id}",
 		 *     summary="Supprime une plante de l'utilisateur",
 		 *     tags={"UserPlant"},
 		 *     security={{"sanctum":{}}},

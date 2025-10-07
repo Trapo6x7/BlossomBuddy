@@ -15,13 +15,13 @@
         }
     ],
     "paths": {
-        "/api/register": {
+        "/register": {
             "post": {
                 "tags": [
                     "Auth"
                 ],
                 "summary": "Inscription d'un utilisateur",
-                "operationId": "8a56853624e025573120a09a4c75d468",
+                "operationId": "0903f2e0df1a8857bee538fc055417f0",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -79,13 +79,13 @@
                 }
             }
         },
-        "/api/login": {
+        "/login": {
             "post": {
                 "tags": [
                     "Auth"
                 ],
                 "summary": "Authentification utilisateur",
-                "operationId": "a3b306d14572d1f4bd6c064b3233e7b8",
+                "operationId": "2dd578ff7aba2721293dac66833b27d1",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -133,13 +133,13 @@
                 }
             }
         },
-        "/api/logout": {
+        "/logout": {
             "post": {
                 "tags": [
                     "Auth"
                 ],
                 "summary": "Déconnexion de l'utilisateur",
-                "operationId": "fe8f3429cd6979b3b4517e186505f9f9",
+                "operationId": "68a6108af04af5e3bc1ea68a6c6f1299",
                 "responses": {
                     "200": {
                         "description": "Déconnexion réussie",
@@ -165,13 +165,13 @@
                 ]
             }
         },
-        "/api/me": {
+        "/me": {
             "get": {
                 "tags": [
                     "Auth"
                 ],
                 "summary": "Retourne l'utilisateur authentifié",
-                "operationId": "9d9bc556f927575aa492a88c28fe5908",
+                "operationId": "e18baa7d6dfc432241dca2fc1985ce40",
                 "responses": {
                     "200": {
                         "description": "Utilisateur connecté"
@@ -184,13 +184,13 @@
                 ]
             }
         },
-        "/api/user/{id}": {
+        "/user/{id}": {
             "get": {
                 "tags": [
                     "Auth"
                 ],
                 "summary": "Afficher un utilisateur par son id",
-                "operationId": "657aa33dec3c63db7b18f0c4a40de469",
+                "operationId": "4513c37aeb4e5f627cf73c2cd0c8ccfe",
                 "parameters": [
                     {
                         "name": "id",
@@ -212,7 +212,7 @@
                     "Auth"
                 ],
                 "summary": "Mettre à jour un utilisateur",
-                "operationId": "6b6b5d76cb3b3f5bef63a764e0dec0ac",
+                "operationId": "2e5827488b67eda1a3830086f42e29c5",
                 "parameters": [
                     {
                         "name": "id",
@@ -258,7 +258,7 @@
                     "Auth"
                 ],
                 "summary": "Supprimer un utilisateur",
-                "operationId": "46efa18220c37a84fa41560e89ff2449",
+                "operationId": "8cd930672898d368f2d7863e5c0904bb",
                 "parameters": [
                     {
                         "name": "id",
@@ -289,13 +289,13 @@
                 }
             }
         },
-        "/api/plant": {
+        "/plant": {
             "get": {
                 "tags": [
                     "Plant"
                 ],
                 "summary": "Liste toutes les plantes",
-                "operationId": "7c23a6e1579ac9f5885edf17b4eddace",
+                "operationId": "d5241537f6505ae4a717f0c92bbb40fb",
                 "responses": {
                     "200": {
                         "description": "Liste des plantes"
@@ -307,7 +307,7 @@
                     "Plant"
                 ],
                 "summary": "Ajoute une nouvelle plante",
-                "operationId": "bdf6e893a6c68eac93ffa14b741ea500",
+                "operationId": "8309c05e5772465302dd924140b3f526",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -317,6 +317,14 @@
                                     "common_name": {
                                         "type": "string",
                                         "example": "Test"
+                                    },
+                                    "ville": {
+                                        "type": "string",
+                                        "example": "Paris"
+                                    },
+                                    "watering": {
+                                        "type": "string",
+                                        "example": "medium"
                                     },
                                     "watering_general_benchmark": {
                                         "type": "object"
@@ -329,18 +337,33 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "Plante créée"
+                        "description": "Plante créée et météo du lieu",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "plant": {
+                                            "type": "object"
+                                        },
+                                        "weather": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 }
             }
         },
-        "/api/plant/{name}": {
+        "/plant/{name}": {
             "get": {
                 "tags": [
                     "Plant"
                 ],
                 "summary": "Affiche une plante par son nom",
-                "operationId": "7689b9b14a12aa70fcbe135e7f73bc32",
+                "operationId": "80c395237d1c7867d3775bc0bdbb3736",
                 "parameters": [
                     {
                         "name": "name",
@@ -362,7 +385,7 @@
                     "Plant"
                 ],
                 "summary": "Supprime une plante par son nom",
-                "operationId": "0a52e9a87990e604fb3ebd10cc5ec93b",
+                "operationId": "f4a7fece79a12719e88ec0c9f7d1faa7",
                 "parameters": [
                     {
                         "name": "name",
@@ -380,13 +403,40 @@
                 }
             }
         },
-        "/api/user/plants": {
+        "/plant/update": {
+            "post": {
+                "tags": [
+                    "Plant"
+                ],
+                "summary": "Met à jour la base de données des plantes depuis l'API externe",
+                "operationId": "f81e52a9f5dd1d9e5ab064f114d2fb0e",
+                "responses": {
+                    "200": {
+                        "description": "Plantes mises à jour",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Plantes mises à jour"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/user/plants": {
             "get": {
                 "tags": [
                     "UserPlant"
                 ],
                 "summary": "Liste les plantes de l'utilisateur connecté",
-                "operationId": "e373eeb86287c1615c861b9daff073fa",
+                "operationId": "0eb9a070f9e58bc55f14fa36d1fa5031",
                 "responses": {
                     "200": {
                         "description": "Liste des plantes de l'utilisateur"
@@ -399,13 +449,13 @@
                 ]
             }
         },
-        "/api/user/plant": {
+        "/user/plant": {
             "post": {
                 "tags": [
                     "UserPlant"
                 ],
                 "summary": "Ajoute une plante à l'utilisateur",
-                "operationId": "f209da9110e8cae9cfd01adbdc4fba02",
+                "operationId": "b4273403948f66e51d9e0bbc5532127b",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -442,13 +492,13 @@
                 ]
             }
         },
-        "/api/user/plant/{id}": {
+        "/user/plant/{id}": {
             "get": {
                 "tags": [
                     "UserPlant"
                 ],
                 "summary": "Affiche une plante précise de l'utilisateur",
-                "operationId": "550b71391b531f4eb8c8ecf544cac7d7",
+                "operationId": "896a5fb8a1bef8a548e4f5e2571b2f27",
                 "parameters": [
                     {
                         "name": "id",
@@ -475,7 +525,7 @@
                     "UserPlant"
                 ],
                 "summary": "Supprime une plante de l'utilisateur",
-                "operationId": "ee358d3a567b9f3c3986f4d2686254bb",
+                "operationId": "b8bc9546b7a4d8703ee245e3fd461fe7",
                 "parameters": [
                     {
                         "name": "id",
