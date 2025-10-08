@@ -55,9 +55,19 @@ class User extends Authenticatable
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
-    public function plants(): BelongsToMany
+    public function plants()
     {
-        return $this->belongsToMany(Plant::class, 'plant_user', 'user_id', 'plant_id');
+        return $this->belongsToMany(Plant::class, 'user_plants', 'user_id', 'plant_id')
+                    ->withPivot('city', 'last_watered_at', 'next_watering_at', 'watering_preferences', 'latitude', 'longitude', 'location_name')
+                    ->withTimestamps();
+    }
+
+    /**
+     * Relation avec les plantes de l'utilisateur (avec données d'arrosage)
+     */
+    public function userPlants()
+    {
+        return $this->hasMany(UserPlant::class);
     }
 }
     

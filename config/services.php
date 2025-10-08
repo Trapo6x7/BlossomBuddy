@@ -35,9 +35,14 @@ return [
         ],
     ],
 
-        'plant_api' => [
-        'key' => env('PLANT_API_KEY', 'sk-U6s068e379d266aeb12714'),
+    'plant_api' => [
+        'key' => env('PLANT_API_KEY', 'sk-K5Ur68e507d3c9e0312714'),
         'details_url' => env('URL_DE_PLANTAPI', 'https://perenual.com/api/v2/species/details/{id}'),
+    ],
+
+    'weather_api' => [
+        'key' => env('WEATHER_API_KEY'),
+        'url' => env('WEATHER_API_URL'),
     ],
 
 ];

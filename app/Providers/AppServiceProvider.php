@@ -20,6 +20,10 @@ class AppServiceProvider extends ServiceProvider
             \App\Services\WeatherApiServiceInterface::class,
             \App\Services\WeatherApiService::class
         );
+        $this->app->bind(
+            \App\Services\WateringCalculatorServiceInterface::class,
+            \App\Services\WateringCalculatorService::class
+        );
     }
 
     /**

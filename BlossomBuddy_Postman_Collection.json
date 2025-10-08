@@ -1,0 +1,686 @@
+{
+	"info": {
+		"_postman_id": "blossom-buddy-api",
+		"name": "BlossomBuddy API",
+		"description": "Collection complète pour tester l'API BlossomBuddy - Système de gestion d'arrosage intelligent",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{auth_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000/api",
+			"type": "string"
+		},
+		{
+			"key": "auth_token",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"prenom\": \"John\",\n    \"nom\": \"Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/register",
+							"host": ["{{base_url}}"],
+							"path": ["register"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('auth_token', response.access_token);",
+									"    pm.collectionVariables.set('auth_token', response.access_token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"john.doe@example.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/login",
+							"host": ["{{base_url}}"],
+							"path": ["login"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Current User",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/user",
+							"host": ["{{base_url}}"],
+							"path": ["user"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/logout",
+							"host": ["{{base_url}}"],
+							"path": ["logout"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Plants Management",
+			"item": [
+				{
+					"name": "Get All Plants",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/plant",
+							"host": ["{{base_url}}"],
+							"path": ["plant"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Plant",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"common_name\": \"Ficus\",\n    \"ville\": \"Paris\",\n    \"watering\": \"medium\",\n    \"watering_general_benchmark\": {\n        \"value\": \"7-10\",\n        \"unit\": \"days\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/plant",
+							"host": ["{{base_url}}"],
+							"path": ["plant"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Plant by Name",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/plant/Ficus",
+							"host": ["{{base_url}}"],
+							"path": ["plant", "Ficus"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Plants Database",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/plant/update",
+							"host": ["{{base_url}}"],
+							"path": ["plant", "update"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Plant",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/plant/1",
+							"host": ["{{base_url}}"],
+							"path": ["plant", "1"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Recherche Française",
+			"item": [
+				{
+					"name": "Rechercher Plantes",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/plants/search?q=monstera&limit=5",
+							"host": ["{{base_url}}"],
+							"path": ["plants", "search"],
+							"query": [
+								{
+									"key": "q",
+									"value": "monstera",
+									"description": "Nom de plante en français ou anglais"
+								},
+								{
+									"key": "limit",
+									"value": "5",
+									"description": "Nombre maximum de résultats"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Autocomplétion",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/plants/autocomplete?q=mon&limit=5",
+							"host": ["{{base_url}}"],
+							"path": ["plants", "autocomplete"],
+							"query": [
+								{
+									"key": "q",
+									"value": "mon",
+									"description": "Début du nom de plante"
+								},
+								{
+									"key": "limit",
+									"value": "5",
+									"description": "Nombre de suggestions"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Trouver ou Suggérer",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"french_name\": \"sansevieria\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/plants/find-or-suggest",
+							"host": ["{{base_url}}"],
+							"path": ["plants", "find-or-suggest"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Mettre à jour noms français",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"french_name\": \"Monstera\",\n    \"alternative_names\": [\"Faux philodendron\", \"Plante gruyère\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/plants/1/french-names",
+							"host": ["{{base_url}}"],
+							"path": ["plants", "1", "french-names"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Test avec différents termes",
+					"item": [
+						{
+							"name": "Recherche 'langue de belle-mère'",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/plants/search?q=langue de belle-mère",
+									"host": ["{{base_url}}"],
+									"path": ["plants", "search"],
+									"query": [
+										{
+											"key": "q",
+											"value": "langue de belle-mère"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Recherche 'aloès'",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/plants/search?q=aloès",
+									"host": ["{{base_url}}"],
+									"path": ["plants", "search"],
+									"query": [
+										{
+											"key": "q",
+											"value": "aloès"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Autocomplétion 'cac'",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/plants/autocomplete?q=cac",
+									"host": ["{{base_url}}"],
+									"path": ["plants", "autocomplete"],
+									"query": [
+										{
+											"key": "q",
+											"value": "cac"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "User Plants",
+			"item": [
+				{
+					"name": "Add Plant to User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"plant_name\": \"ficus\",\n    \"city\": \"Paris\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/user/plant",
+							"host": ["{{base_url}}"],
+							"path": ["user", "plant"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Plant with GPS Coordinates",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"plant_name\": \"monstera\",\n    \"latitude\": 48.8566,\n    \"longitude\": 2.3522,\n    \"location_name\": \"Paris, France\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/user/plant",
+							"host": ["{{base_url}}"],
+							"path": ["user", "plant"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Plants (Dashboard complet)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/user/plants",
+							"host": ["{{base_url}}"],
+							"path": ["user", "plants"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Plants (Filtered by City)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/user/plants?city=Paris",
+							"host": ["{{base_url}}"],
+							"path": ["user", "plants"],
+							"query": [
+								{
+									"key": "city",
+									"value": "Paris"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove Plant from User",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/user/plant/1",
+							"host": ["{{base_url}}"],
+							"path": ["user", "plant", "1"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Water User Plant",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"watered_at\": \"2025-10-08 14:30:00\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/user/plant/1/water",
+							"host": ["{{base_url}}"],
+							"path": ["user", "plant", "1", "water"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Watering System",
+			"item": [
+				{
+					"name": "Record Watering",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"plant_id\": 1,\n    \"city\": \"Paris\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/plant/water",
+							"host": ["{{base_url}}"],
+							"path": ["plant", "water"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Notifications",
+			"item": [
+				{
+					"name": "Test Watering Reminder",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"plant_id\": 1,\n    \"city\": \"Paris\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/notifications/test-watering-reminder",
+							"host": ["{{base_url}}"],
+							"path": ["notifications", "test-watering-reminder"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Reminders Preview",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/notifications/my-reminders-preview",
+							"host": ["{{base_url}}"],
+							"path": ["notifications", "my-reminders-preview"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Send All Reminders (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"days_ahead\": 3\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/notifications/send-all-reminders",
+							"host": ["{{base_url}}"],
+							"path": ["notifications", "send-all-reminders"]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

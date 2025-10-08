@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Services\PlantApiServiceInterface;
+use App\Models\Plant;
 
 class BackfillPlants extends Command
 {
@@ -12,14 +13,14 @@ class BackfillPlants extends Command
      *
      * @var string
      */
-    protected $signature = 'plants:backfill';
+    protected $signature = 'plants:backfill {--skip-translation : Ne pas lancer la traduction automatique}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Backfill des données des plantes depuis Perenual API';
+    protected $description = 'Backfill des données des plantes depuis Perenual API avec traduction automatique';
 
     /**
      * Execute the console command.
@@ -28,13 +29,72 @@ class BackfillPlants extends Command
      */
     public function handle(PlantApiServiceInterface $plantApiService)
     {
-        $this->info('Début du backfill des plantes...');
+        $this->info('🌱 Début du backfill des plantes...');
+        
+        // Compteur avant backfill
+        $plantsCountBefore = Plant::count();
+        
         try {
             $plantApiService->updatePlantsFromApi();
-            $this->info('Backfill des données des plantes terminé.');
+            
+            // Compteur après backfill
+            $plantsCountAfter = Plant::count();
+            $newPlantsAdded = $plantsCountAfter - $plantsCountBefore;
+            
+            $this->info("✅ Backfill terminé - {$newPlantsAdded} nouvelles plantes ajoutées");
+            
+            // Lancer la traduction automatique sauf si explicitement désactivée
+            if (!$this->option('skip-translation')) {
+                $this->info('🌍 Lancement de la traduction automatique...');
+                
+                // Compter les plantes non traduites avant
+                $untranslatedBefore = Plant::whereNull('french_name')->count();
+                
+                if ($untranslatedBefore > 0) {
+                    $this->line("📊 {$untranslatedBefore} plante(s) à traduire...");
+                    
+                    // Lancer la commande de traduction
+                    $translationResult = $this->call('plants:translate');
+                    
+                    if ($translationResult === 0) {
+                        // Vérifier les résultats après traduction
+                        $untranslatedAfter = Plant::whereNull('french_name')->count();
+                        $translatedCount = $untranslatedBefore - $untranslatedAfter;
+                        
+                        $this->info("🎉 Traduction terminée - {$translatedCount} plante(s) traduites");
+                        
+                        if ($untranslatedAfter > 0) {
+                            $this->warn("⚠️  {$untranslatedAfter} plante(s) restent non traduites");
+                            $this->line("💡 Vous pouvez les traduire manuellement avec l'API PUT /plants/{id}/french-names");
+                        }
+                    } else {
+                        $this->error('❌ Erreur lors de la traduction automatique');
+                    }
+                } else {
+                    $this->info('✅ Toutes les plantes sont déjà traduites !');
+                }
+            } else {
+                $this->warn('⏭️  Traduction automatique ignorée (--skip-translation)');
+            }
+            
+            $this->newLine();
+            $this->info('📊 Résumé final:');
+            $this->info("   • Total des plantes: {$plantsCountAfter}");
+            $this->info("   • Nouvelles plantes: {$newPlantsAdded}");
+            
+            if (!$this->option('skip-translation')) {
+                $translated = Plant::whereNotNull('french_name')->count();
+                $untranslated = Plant::whereNull('french_name')->count();
+                $percentage = $plantsCountAfter > 0 ? round(($translated / $plantsCountAfter) * 100, 1) : 0;
+                
+                $this->info("   • Plantes traduites: {$translated} ({$percentage}%)");
+                $this->info("   • Plantes non traduites: {$untranslated}");
+            }
+            
             return 0;
+            
         } catch (\Throwable $e) {
-            $this->error('Erreur lors du backfill : ' . $e->getMessage());
+            $this->error('❌ Erreur lors du backfill : ' . $e->getMessage());
             return 1;
         }
     }

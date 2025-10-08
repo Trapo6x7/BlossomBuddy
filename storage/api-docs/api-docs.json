@@ -289,6 +289,155 @@
                 }
             }
         },
+        "/notifications/test-watering-reminder": {
+            "post": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Tester l'envoi d'un rappel d'arrosage pour une plante spécifique",
+                "operationId": "7a1ee923010a546f68786a3ec05cd0e3",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "plant_id",
+                                    "city"
+                                ],
+                                "properties": {
+                                    "plant_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "city": {
+                                        "type": "string",
+                                        "example": "Paris"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Notification de test envoyée",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "notification_data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/notifications/send-all-reminders": {
+            "post": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Déclencher l'envoi de tous les rappels d'arrosage (admin)",
+                "operationId": "3fa40043d8f35b3f5f22eff8080ab862",
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "days_ahead": {
+                                        "description": "Nombre de jours d'avance pour les rappels",
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Rappels envoyés",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "command_output": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/notifications/my-reminders-preview": {
+            "get": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Aperçu des prochains rappels pour l'utilisateur connecté",
+                "operationId": "2a6e23d4d5c1a084ad3455816639e235",
+                "responses": {
+                    "200": {
+                        "description": "Liste des prochains rappels",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "plant": {
+                                                "type": "object"
+                                            },
+                                            "reminder_date": {
+                                                "type": "string"
+                                            },
+                                            "urgency": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/plant": {
             "get": {
                 "tags": [
@@ -403,23 +552,53 @@
                 }
             }
         },
-        "/plant/update": {
+        "/plant/watering-schedule": {
             "post": {
                 "tags": [
                     "Plant"
                 ],
-                "summary": "Met à jour la base de données des plantes depuis l'API externe",
-                "operationId": "f81e52a9f5dd1d9e5ab064f114d2fb0e",
+                "summary": "Calcule le temps avant le prochain arrosage pour une plante",
+                "operationId": "44fbd74eea1e4a5efdd8e309f68cfcad",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "plant_common_name": {
+                                        "type": "string",
+                                        "example": "Rose"
+                                    },
+                                    "city": {
+                                        "type": "string",
+                                        "example": "Paris"
+                                    },
+                                    "last_watered_at": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2025-10-06T10:00:00Z"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "200": {
-                        "description": "Plantes mises à jour",
+                        "description": "Calcul du prochain arrosage",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Plantes mises à jour"
+                                        "user_plant": {
+                                            "type": "object"
+                                        },
+                                        "watering_schedule": {
+                                            "type": "object"
+                                        },
+                                        "weather_data": {
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -427,7 +606,479 @@
                             }
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/plant/water": {
+            "post": {
+                "tags": [
+                    "Plants"
+                ],
+                "summary": "Enregistrer un arrosage de plante",
+                "description": "Met à jour la date du dernier arrosage pour une plante de l'utilisateur",
+                "operationId": "waterPlant",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "plant_id",
+                                    "city"
+                                ],
+                                "properties": {
+                                    "plant_id": {
+                                        "description": "ID de la plante",
+                                        "type": "integer"
+                                    },
+                                    "city": {
+                                        "description": "Ville où se trouve la plante",
+                                        "type": "string"
+                                    },
+                                    "watered_at": {
+                                        "description": "Date et heure d'arrosage (optionnel, par défaut maintenant)",
+                                        "type": "string",
+                                        "format": "date-time"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Arrosage enregistré avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "user_plant": {
+                                            "type": "object"
+                                        },
+                                        "next_watering_date": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Relation plante-utilisateur non trouvée"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/user/plants-with-schedule": {
+            "get": {
+                "tags": [
+                    "Plants"
+                ],
+                "summary": "Récupérer les plantes de l'utilisateur avec leur programme d'arrosage",
+                "description": "Retourne toutes les plantes de l'utilisateur avec leur prochain arrosage calculé",
+                "operationId": "getUserPlantsWithSchedule",
+                "parameters": [
+                    {
+                        "name": "city",
+                        "in": "query",
+                        "description": "Filtrer par ville (optionnel)",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Liste des plantes avec programme d'arrosage",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "plant": {
+                                                "type": "object"
+                                            },
+                                            "watering_schedule": {
+                                                "type": "object"
+                                            },
+                                            "weather_data": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/plants/search": {
+            "get": {
+                "tags": [
+                    "Plant Search"
+                ],
+                "summary": "Recherche de plantes par nom français ou anglais",
+                "operationId": "6342a8e6974f612fd87cae941e7d4001",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "description": "Nom de la plante à rechercher",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "monstera"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Nombre maximum de résultats",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 10,
+                            "maximum": 50,
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Résultats de la recherche",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "plants": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "common_name": {
+                                                        "type": "string",
+                                                        "example": "Monstera deliciosa"
+                                                    },
+                                                    "french_name": {
+                                                        "type": "string",
+                                                        "example": "Monstera"
+                                                    },
+                                                    "alternative_names": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "watering_general_benchmark": {
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "count": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "query": {
+                                            "type": "string",
+                                            "example": "monstera"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Paramètre de recherche manquant"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/plants/autocomplete": {
+            "get": {
+                "tags": [
+                    "Plant Search"
+                ],
+                "summary": "Autocomplétion pour les noms de plantes",
+                "operationId": "4f49aca2060277b311944bf31122feca",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "description": "Début du nom de plante à compléter",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "mon"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Nombre maximum de suggestions",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 5,
+                            "maximum": 20,
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Suggestions d'autocomplétion",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "suggestions": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "description": "ID de la plante (si trouvée en base)",
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "text": {
+                                                        "type": "string",
+                                                        "example": "Monstera"
+                                                    },
+                                                    "secondary": {
+                                                        "type": "string",
+                                                        "example": "Monstera deliciosa"
+                                                    },
+                                                    "source": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "database",
+                                                            "dictionary"
+                                                        ]
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "count": {
+                                            "type": "integer",
+                                            "example": 3
+                                        },
+                                        "query": {
+                                            "type": "string",
+                                            "example": "mon"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Paramètre de recherche invalide"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/plants/find-or-suggest": {
+            "post": {
+                "tags": [
+                    "Plant Search"
+                ],
+                "summary": "Trouve une plante ou suggère des alternatives",
+                "operationId": "77d426357e7d4ff43cbc022b2824c21f",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "french_name": {
+                                        "description": "Nom français de la plante",
+                                        "type": "string",
+                                        "example": "monstera"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Plante trouvée ou suggestions",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {
+                                            "properties": {
+                                                "found": {
+                                                    "type": "boolean",
+                                                    "example": true
+                                                },
+                                                "plant": {
+                                                    "type": "object"
+                                                },
+                                                "confidence": {
+                                                    "type": "string",
+                                                    "example": "high"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        {
+                                            "properties": {
+                                                "found": {
+                                                    "type": "boolean",
+                                                    "example": false
+                                                },
+                                                "suggestions": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "message": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Nom de plante manquant"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/plants/{id}/french-names": {
+            "put": {
+                "tags": [
+                    "Plant Search"
+                ],
+                "summary": "Met à jour les noms français d'une plante",
+                "operationId": "93156440d6d25ab23024e1db2d54c79c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la plante",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "french_name": {
+                                        "description": "Nom français principal",
+                                        "type": "string",
+                                        "example": "Monstera"
+                                    },
+                                    "alternative_names": {
+                                        "description": "Noms alternatifs et synonymes",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "example": [
+                                            "Faux philodendron",
+                                            "Plante gruyère"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Noms français mis à jour avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Noms français mis à jour avec succès"
+                                        },
+                                        "plant": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Plante non trouvée"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
             }
         },
         "/user/plants": {
@@ -547,16 +1198,74 @@
                     }
                 ]
             }
+        },
+        "/user/plant/{id}/water": {
+            "post": {
+                "tags": [
+                    "UserPlant"
+                ],
+                "summary": "Enregistre l'arrosage d'une plante de l'utilisateur",
+                "operationId": "738b8224830d909741f9e815834261d0",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "watered_at": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2025-10-08 14:30:00"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Arrosage enregistré avec succès"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
         }
     },
     "tags": [
+        {
+            "name": "Plant Search",
+            "description": "Recherche intelligente de plantes en français"
+        },
         {
             "name": "Auth",
             "description": "Auth"
         },
         {
+            "name": "Notifications",
+            "description": "Notifications"
+        },
+        {
             "name": "Plant",
             "description": "Plant"
+        },
+        {
+            "name": "Plants",
+            "description": "Plants"
         },
         {
             "name": "UserPlant",

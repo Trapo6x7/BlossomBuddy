@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 use App\Models\Plant;
+use App\Exceptions\ApiRateLimitException;
 
 class PlantApiService implements PlantApiServiceInterface
 {
@@ -55,7 +56,19 @@ class PlantApiService implements PlantApiServiceInterface
                 'key' => $apiKey,
                 'page' => $page
             ]);
+            
+            // Vérification du rate limit
+            if ($response->failed() || isset($response->json()['X-RateLimit-Exceeded'])) {
+                throw new ApiRateLimitException($response);
+            }
+            
             $plants = $response->json('data') ?? [];
+            
+            // Debug : affiche la réponse complète pour voir les erreurs
+            if ($page === 1) {
+                \Illuminate\Support\Facades\Log::info('API Response page 1:', $response->json());
+            }
+            
             $hasMore = count($plants) > 0;
             foreach ($plants as $plantData) {
                 $id = $plantData['id'] ?? null;
@@ -75,11 +88,11 @@ class PlantApiService implements PlantApiServiceInterface
                             'type' => $details['type'] ?? '',
                             'cycle' => $details['cycle'] ?? '',
                             'watering' => $details['watering'] ?? '',
-                            'watering_general_benchmark' => json_encode($details['watering_general_benchmark'] ?? []),
+                            'watering_general_benchmark' => $details['watering_general_benchmark'] ?? [],
                             'description' => $details['description'] ?? '',
                             'image_url'     => $image['original_url'] ?? '',
                             'thumbnail_url' => $image['thumbnail'] ?? '',
-                            'medium_url'    => $image['medium_url'] ?? '',
+                            'medium_url'    => $image['regular_url'] ?? '',
                             'regular_url'   => $image['regular_url'] ?? '',
                             'license' => isset($image['license']) ? intval($image['license']) : null,
                             'license_name'  => $image['license_name'] ?? '',
