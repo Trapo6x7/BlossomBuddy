@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('user_plants', function (Blueprint $table) {
-            $table->timestamp('next_watering_at')->nullable()->after('last_watered_at');
+            if (!Schema::hasColumn('user_plants', 'next_watering_at')) {
+                $table->timestamp('next_watering_at')->nullable()->after('last_watered_at');
+            }
         });
     }
 

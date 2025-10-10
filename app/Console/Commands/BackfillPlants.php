@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Services\PlantApiServiceInterface;
 use App\Models\Plant;
+use App\Models\BackfillState;
 
 class BackfillPlants extends Command
 {
@@ -13,14 +14,16 @@ class BackfillPlants extends Command
      *
      * @var string
      */
-    protected $signature = 'plants:backfill {--skip-translation : Ne pas lancer la traduction automatique}';
+    protected $signature = 'plants:backfill 
+                            {--skip-translation : Ne pas lancer la traduction automatique}
+                            {--force-restart : Force un redémarrage complet depuis la page 1}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Backfill des données des plantes depuis Perenual API avec traduction automatique';
+    protected $description = 'Backfill des données des plantes depuis Perenual API avec traduction automatique et reprise automatique';
 
     /**
      * Execute the console command.
@@ -29,7 +32,23 @@ class BackfillPlants extends Command
      */
     public function handle(PlantApiServiceInterface $plantApiService)
     {
-        $this->info('🌱 Début du backfill des plantes...');
+        // Vérifier si l'utilisateur veut forcer un redémarrage
+        if ($this->option('force-restart')) {
+            $backfillState = BackfillState::where('process_name', 'plants_backfill')->first();
+            if ($backfillState) {
+                $this->warn('🔄 Redémarrage forcé du backfill...');
+                $backfillState->reset();
+            }
+        }
+
+        // Afficher le statut de reprise
+        $backfillState = BackfillState::where('process_name', 'plants_backfill')->first();
+        if ($backfillState && !$backfillState->is_completed && $backfillState->last_page > 0) {
+            $this->info("🔄 Reprise du backfill à partir de la page " . ($backfillState->last_page + 1));
+            $this->info("📊 Déjà traités: {$backfillState->processed_items} éléments");
+        } else {
+            $this->info('🌱 Début du backfill des plantes...');
+        }
         
         // Compteur avant backfill
         $plantsCountBefore = Plant::count();
