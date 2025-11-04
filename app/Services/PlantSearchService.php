@@ -3,11 +3,21 @@
 namespace App\Services;
 
 use App\Models\Plant;
+use App\Repositories\PlantRepositoryInterface;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 class PlantSearchService
 {
+
+    private PlantRepositoryInterface $plantRepository;
+
+    public function __construct(PlantRepositoryInterface $plantRepository)
+    {
+        $this->plantRepository = $plantRepository;
+    }
+
     /**
      * Dictionnaire de correspondance français -> anglais pour les plantes courantes
      */
@@ -45,7 +55,7 @@ class PlantSearchService
         'arbre à argent' => 'Money Tree',
         'jade' => 'Jade Plant',
         'crassula' => 'Jade Plant',
-        
+
         // Plantes d'extérieur et jardin
         'rose' => 'Rose',
         'rosier' => 'Rose',
@@ -88,7 +98,24 @@ class PlantSearchService
      */
     public function findPlantByName(string $name): ?Plant
     {
-        $results = $this->searchPlants($name, 1);
+        // Recherche exacte par nom français
+        $exactFrenchMatch = $this->plantRepository->findByFrenchName($name);
+        if ($exactFrenchMatch) {
+            return $exactFrenchMatch;
+        }
+
+        // Recherche dans le dictionnaire de correspondances
+        $query = trim(strtolower($name));
+        $englishEquivalent = $this->frenchToEnglishMapping[$query] ?? null;
+        if ($englishEquivalent) {
+            $mappingMatch = $this->plantRepository->findByCommonNameLike($englishEquivalent);
+            if ($mappingMatch) {
+                return $mappingMatch;
+            }
+        }
+
+        // Recherche floue dans tous les champs
+        $results = $this->plantRepository->searchByNameOrAlternative($query, 1);
         return $results->first();
     }
 
@@ -98,13 +125,13 @@ class PlantSearchService
     public function searchPlants(string $query, int $limit = 10): Collection
     {
         $query = trim(strtolower($query));
-        
+
         if (empty($query)) {
             return collect();
         }
 
         // 1. Recherche exacte par nom français
-        $exactFrenchMatch = Plant::whereRaw('LOWER(french_name) = ?', [$query])->first();
+        $exactFrenchMatch = $this->plantRepository->findByFrenchName($query);
         if ($exactFrenchMatch) {
             return collect([$exactFrenchMatch]);
         }
@@ -112,21 +139,14 @@ class PlantSearchService
         // 2. Recherche dans le dictionnaire de correspondances
         $englishEquivalent = $this->frenchToEnglishMapping[$query] ?? null;
         if ($englishEquivalent) {
-            $mappingMatch = Plant::whereRaw('LOWER(common_name) LIKE ?', ['%' . strtolower($englishEquivalent) . '%'])->first();
+            $mappingMatch = $this->plantRepository->findByCommonNameLike($englishEquivalent);
             if ($mappingMatch) {
                 return collect([$mappingMatch]);
             }
         }
 
         // 3. Recherche floue dans tous les champs
-        return Plant::where(function ($queryBuilder) use ($query) {
-            $queryBuilder
-                ->whereRaw('LOWER(common_name) LIKE ?', ['%' . $query . '%'])
-                ->orWhereRaw('LOWER(french_name) LIKE ?', ['%' . $query . '%'])
-                ->orWhereRaw('JSON_SEARCH(LOWER(alternative_names), "one", ?) IS NOT NULL', ['%' . $query . '%']);
-        })
-        ->limit($limit)
-        ->get();
+        return $this->plantRepository->searchByNameOrAlternative($query, $limit);
     }
 
     /**
@@ -135,7 +155,7 @@ class PlantSearchService
     public function getAutocompleteSuggestions(string $query, int $limit = 5): array
     {
         $query = trim(strtolower($query));
-        
+
         if (strlen($query) < 2) {
             return [];
         }
@@ -148,17 +168,17 @@ class PlantSearchService
                 ->whereRaw('LOWER(common_name) LIKE ?', [$query . '%'])
                 ->orWhereRaw('LOWER(french_name) LIKE ?', [$query . '%']);
         })
-        ->limit($limit)
-        ->get()
-        ->map(function ($plant) {
-            return [
-                'id' => $plant->id,
-                'text' => $plant->french_name ?: $plant->common_name,
-                'secondary' => $plant->french_name ? $plant->common_name : null,
-                'source' => 'database'
-            ];
-        })
-        ->toArray();
+            ->limit($limit)
+            ->get()
+            ->map(function ($plant) {
+                return [
+                    'id' => $plant->id,
+                    'text' => $plant->french_name ?: $plant->common_name,
+                    'secondary' => $plant->french_name ? $plant->common_name : null,
+                    'source' => 'database'
+                ];
+            })
+            ->toArray();
 
         $suggestions = array_merge($suggestions, $dbSuggestions);
 
@@ -185,7 +205,7 @@ class PlantSearchService
     public function findOrSuggestPlant(string $frenchName): array
     {
         $results = $this->searchPlants($frenchName, 1);
-        
+
         if ($results->isNotEmpty()) {
             return [
                 'found' => true,
@@ -196,7 +216,7 @@ class PlantSearchService
 
         // Si pas trouvé, suggérer des alternatives
         $suggestions = $this->getAutocompleteSuggestions($frenchName, 3);
-        
+
         return [
             'found' => false,
             'suggestions' => $suggestions,
@@ -210,7 +230,7 @@ class PlantSearchService
     public function updatePlantFrenchNames(int $plantId, string $frenchName, array $alternativeNames = []): bool
     {
         $plant = Plant::find($plantId);
-        
+
         if (!$plant) {
             return false;
         }
@@ -230,5 +250,62 @@ class PlantSearchService
     {
         $this->frenchToEnglishMapping[strtolower($frenchName)] = $englishName;
         // Dans une vraie application, ceci pourrait être persisté en base de données
+    }
+
+        /**
+     * Hub public : récupère les données de l'API puis les stocke en base
+     */
+    public function fetchAndStorePlants(): void
+    {
+        $plantsData = $this->fetchPlantsFromApi();
+        $this->storePlants($plantsData);
+    }
+
+    /**
+     * Récupère les données de l'API des plantes (méthode privée)
+     * @return array
+     */
+    private function fetchPlantsFromApi(): array
+    {
+        $apiKey = env('PLANT_API_KEY');
+        $url = 'https://perenual.com/api/species-list';
+
+        $allPlants = [];
+        $page = 1;
+        $perPage = 100; // selon la doc, max 100
+        do {
+            $response = Http::get($url, [
+                'key' => $apiKey,
+                'page' => $page,
+                'size' => $perPage
+            ]);
+            if ($response->successful()) {
+                $data = $response->json();
+                if (isset($data['data']) && is_array($data['data'])) {
+                    $allPlants = array_merge($allPlants, $data['data']);
+                    if (count($data['data']) < $perPage) {
+                        break; // dernière page
+                    }
+                } else {
+                    break;
+                }
+            } else {
+                break;
+            }
+            $page++;
+        } while (true);
+
+        return $allPlants;
+    }
+
+    /**
+     * Stocke les données des plantes en base via le repository (méthode privée)
+     * @param array $plantsData
+     */
+    private function storePlants(array $plantsData): void
+    {
+        foreach ($plantsData as $plant) {
+            $this->plantRepository->create($plant);
+        }
     }
 }

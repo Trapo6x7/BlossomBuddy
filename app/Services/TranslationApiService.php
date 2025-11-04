@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Cache;
 class TranslationApiService
 {
     private string $baseUrl = 'https://api.mymemory.translated.net/get';
+    private string $libretranslateUrl = 'https://libretranslate.de/translate'; // Instance publique gratuite
     private int $requestDelay = 200; // 200ms entre les requêtes pour éviter le rate limiting
 
     /**
@@ -17,38 +18,48 @@ class TranslationApiService
     public function translateToFrench(string $englishText): ?string
     {
         $cacheKey = 'translation_' . md5($englishText);
-        
         // Vérifier le cache d'abord
         if (Cache::has($cacheKey)) {
             return Cache::get($cacheKey);
         }
 
+        // 1. Tenter LibreTranslate (pas de clé, open source)
         try {
-            // Petite pause pour éviter le rate limiting
+            $response = Http::timeout(10)->post($this->libretranslateUrl, [
+                'q' => $englishText,
+                'source' => 'en',
+                'target' => 'fr',
+                'format' => 'text',
+            ]);
+            if ($response->successful() && isset($response['translatedText'])) {
+                $translation = $response['translatedText'];
+                Cache::put($cacheKey, $translation, now()->addDay());
+                Log::info("LibreTranslate: '{$englishText}' → '{$translation}'");
+                return $translation;
+            }
+            Log::warning("LibreTranslate API failed for: {$englishText}");
+        } catch (\Exception $e) {
+            Log::error("LibreTranslate API error: " . $e->getMessage());
+        }
+
+        // 2. Fallback MyMemory si LibreTranslate échoue
+        try {
             usleep($this->requestDelay * 1000);
-            
             $response = Http::timeout(10)->get($this->baseUrl, [
                 'q' => $englishText,
                 'langpair' => 'en|fr'
             ]);
-
             if ($response->successful()) {
                 $data = $response->json();
-                
                 if (isset($data['responseData']['translatedText'])) {
                     $translation = $data['responseData']['translatedText'];
-                    
-                    // Mettre en cache pour 24h
                     Cache::put($cacheKey, $translation, now()->addDay());
-                    
                     Log::info("API Translation: '{$englishText}' → '{$translation}'");
                     return $translation;
                 }
             }
-            
             Log::warning("Translation API failed for: {$englishText}");
             return null;
-            
         } catch (\Exception $e) {
             Log::error("Translation API error: " . $e->getMessage());
             return null;
@@ -60,16 +71,26 @@ class TranslationApiService
      */
     public function translatePlantName(string $englishName): ?array
     {
+        // DYNAMIQUE : détecte la famille (1 ou 2 derniers mots), traduit la famille, place le reste comme cultivar
+        // Traduire tout le nom sans découpage pour garder toutes les spécificités
         $translation = $this->translateToFrench($englishName);
-        
         if (!$translation) {
             return null;
         }
+        $frenchName = $this->improvePlantTranslation($translation, $englishName);
+        $alternatives = $this->generateAlternatives($frenchName, $englishName);
+        return [
+            'french_name' => $frenchName,
+            'alternatives' => $alternatives
+        ];
 
+        $translation = $this->translateToFrench($englishName);
+        if (!$translation) {
+            return null;
+        }
         // Post-processing pour améliorer la traduction des plantes
         $frenchName = $this->improvePlantTranslation($translation, $englishName);
         $alternatives = $this->generateAlternatives($frenchName, $englishName);
-
         return [
             'french_name' => $frenchName,
             'alternatives' => $alternatives

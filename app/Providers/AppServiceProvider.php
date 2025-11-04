@@ -13,8 +13,8 @@ class AppServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->bind(
-            \App\Services\PlantApiServiceInterface::class,
-            \App\Services\PlantApiService::class
+            \App\Repositories\PlantRepositoryInterface::class,
+            \App\Repositories\PlantRepository::class
         );
         $this->app->bind(
             \App\Services\WeatherApiServiceInterface::class,
@@ -23,6 +23,29 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             \App\Services\WateringCalculatorServiceInterface::class,
             \App\Services\WateringCalculatorService::class
+        );
+        $this->app->bind(
+            \App\Services\PlantApiServiceInterface::class,
+            function ($app) {
+                return new \App\Services\LoggingPlantApiService(
+                    $app->make(\App\Services\PlantApiService::class),
+                    $app->make(\Psr\Log\LoggerInterface::class)
+                );
+            }
+        );
+        $this->app->bind(
+            \App\Services\LoggingServiceInterface::class,
+            \App\Services\LaravelLoggingService::class
+        );
+
+        $this->app->bind(
+            \App\Services\PlantServiceInterface::class,
+            function ($app) {
+                return new \App\Services\PlantServiceLoggingDecorator(
+                    $app->make(\App\Services\PlantService::class),
+                    $app->make(\App\Services\LoggingServiceInterface::class)
+                );
+            }
         );
     }
 
