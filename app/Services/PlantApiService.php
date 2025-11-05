@@ -16,6 +16,17 @@ class PlantApiService implements PlantApiServiceInterface
     {
         $this->translationService = $translationService;
     }
+    public function getAllPlants(): array
+    {
+        $apiKey = config('services.plant_api.key');
+        $response = Http::get('https://perenual.com/api/v2/species-list', [
+            'key' => $apiKey,
+            'page' => 1
+        ]);
+        
+        return $response->json('data') ?? [];
+    }
+
     public function getPlantData(string $commonName): ?array
     {
 

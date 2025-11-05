@@ -62,4 +62,8 @@ class PlantRepository implements PlantRepositoryInterface
             ->limit($limit)
             ->get();
     }
+    public function store(array $plant): void
+    {
+        Plant::create($plant);
+    }
 }
